@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/myapp.png</file>
+    <file>translations/timer_zh_CN.qm</file>
+</qresource>
+</RCC>
