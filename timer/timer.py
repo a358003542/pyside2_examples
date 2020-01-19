@@ -92,7 +92,7 @@ class Timer(QMainWindow):
     def __init__(self, app=None):
         super().__init__()
         self.app = app
-        self.lang = ''
+        self.lang = QLocale.system().name()
 
         self.sound_thread = None
 
@@ -112,7 +112,7 @@ class Timer(QMainWindow):
         self.timeout.connect(self.beep)
 
     def initUi(self):
-        self.resize(300, 300)
+        self.setFixedSize(300, 350)
         self.center()
         self.setWindowTitle('timer')
         self.setWindowIcon(QIcon(':images/myapp.png'))
@@ -122,7 +122,7 @@ class Timer(QMainWindow):
         act_quit.triggered.connect(self.menu_exit)
 
         menu_language = self.menuBar().addMenu('Language')
-        act_chinese = menu_language.addAction('chinese')
+        act_chinese = menu_language.addAction('中文')
         act_chinese.triggered.connect(self.change_lang_chinese)
         act_english = menu_language.addAction('english')
         act_english.triggered.connect(self.change_lang_english)
@@ -149,6 +149,8 @@ class Timer(QMainWindow):
 
         # 状态栏
         self.statusBar().showMessage('程序已就绪...')
+        self.statusBar().setSizeGripEnabled(False)
+
         self.show()
 
     def menu_exit(self):
@@ -188,7 +190,7 @@ class Timer(QMainWindow):
         translator.load(':translations/timer_zh_CN')
         self.app.installTranslator(translator)
         self.retranslateUi()
-        self.lang = 'zh'
+        self.lang = 'zh_CN'
 
     def change_lang_english(self):
         self.app.removeTranslator(default_translator)
@@ -196,7 +198,7 @@ class Timer(QMainWindow):
         translator.load('')
         self.app.installTranslator(translator)
         self.retranslateUi()
-        self.lang = ''
+        self.lang = 'en'
 
     def settimer(self, time_sec):
         self.time = time_sec
@@ -206,7 +208,7 @@ class Timer(QMainWindow):
         hour = time_data.tm_hour
         minute = time_data.tm_min
         second = time_data.tm_sec
-        if self.lang == 'zh':
+        if self.lang == 'zh_CN':
             text = f'{hour} 小时 {minute} 分 {second} 秒'
         else:
             text = f'{hour} hour {minute} minute {second} second'
