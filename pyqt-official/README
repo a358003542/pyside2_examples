@@ -1,5 +1,6 @@
 ## UPDATED
-updated by cdwanze, change the PySide2 to PySide2, AND fix some other related bugs.
+updated by cdwanze, change the PyQt5 to PySide2, AND fix some other related bugs.
+AND make some changed for the qtdemo.py script more helpful.
 
 PyQt is supplied with a number of example applications and demonstrations that
 have been written to provide developers with examples of the Qt API in use,

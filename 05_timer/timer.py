@@ -4,10 +4,10 @@ import os
 import time
 import sys
 
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QVBoxLayout, QPushButton, QSpinBox, QWidget, \
-    QLCDNumber, QLabel, QMainWindow, QApplication, QMessageBox, \
-    QSystemTrayIcon, QMenu
+from PySide2.QtGui import QIcon, QFont
+from PySide2.QtWidgets import QVBoxLayout, QPushButton, QWidget, \
+    QLCDNumber, QMainWindow, QApplication, QMessageBox, \
+    QSystemTrayIcon, QMenu, QHBoxLayout, QComboBox
 from PySide2.QtCore import QTimer, Slot, Signal, QTranslator, QThread, QLocale
 
 import timer_rc
@@ -16,11 +16,15 @@ import timer_rc
 default_translator = QTranslator()
 default_translator.load(f':translations/timer_{QLocale.system().name()}')
 
+VERSION = '1.1.0'
+
 
 class MyWidget(QWidget):
     def __init__(self, parent=None):
         super(MyWidget, self).__init__()
         self.parent = parent
+
+        self.countdown_edit_font = QFont('微软雅黑', 15)
 
         self.initUI()
 
@@ -29,7 +33,28 @@ class MyWidget(QWidget):
         self.buttonReset.clicked.connect(self.parent.reset)
         self.buttonCountDown.clicked.connect(self.parent.timerDown.start)
         self.buttonCountDownPause.clicked.connect(self.parent.timerDown.stop)
-        self.timeSpinBox.valueChanged.connect(self.parent.settimer)
+
+        self.countdown_edit_hour.currentIndexChanged.connect(
+            self.countdown_edit_changed)
+        self.countdown_edit_minute.currentIndexChanged.connect(
+            self.countdown_edit_changed)
+        self.countdown_edit_second.currentIndexChanged.connect(
+            self.countdown_edit_changed)
+
+    @Slot()
+    def countdown_edit_changed(self, index):
+        hour = self.countdown_edit_hour.currentIndex()
+        minute = self.countdown_edit_minute.currentIndex()
+        second = self.countdown_edit_second.currentIndex()
+
+        time_sec = hour * 60 * 60 + minute * 60 + second
+
+        self.parent.settimer(time_sec)
+
+    def reset_countdown_edit(self):
+        self.countdown_edit_hour.setCurrentIndex(0)
+        self.countdown_edit_minute.setCurrentIndex(0)
+        self.countdown_edit_second.setCurrentIndex(0)
 
     def initUI(self):
         mainLayout = QVBoxLayout()
@@ -37,31 +62,54 @@ class MyWidget(QWidget):
 
         self.timeViewer = QLCDNumber()
         self.timeViewer.setFixedHeight(45)
+        self.timeViewer.setDigitCount(8)  # 00:00:00
         mainLayout.addWidget(self.timeViewer)
 
-        self.timeForHuman = QLabel()
-        mainLayout.addWidget(self.timeForHuman)
-
         self.buttonStart = QPushButton(self.tr("start"))
+        self.buttonStart.setMinimumHeight(35)
         mainLayout.addWidget(self.buttonStart)
 
         self.buttonPause = QPushButton(self.tr("pause"))
+        self.buttonPause.setMinimumHeight(35)
         mainLayout.addWidget(self.buttonPause)
 
         self.buttonReset = QPushButton(self.tr("reset"))
+        self.buttonReset.setMinimumHeight(35)
         mainLayout.addWidget(self.buttonReset)
 
-        mainLayout.addSpacing(15)
+        mainLayout.addSpacing(10)
 
-        self.timeSpinBox = QSpinBox()
-        self.timeSpinBox.setRange(0, 10000)
-        mainLayout.addWidget(self.timeSpinBox)
+        countdown_edit_hlayout = QHBoxLayout()
+        self.countdown_edit_hour = QComboBox()
+        self.countdown_edit_hour.setMinimumHeight(35)
+        self.countdown_edit_hour.setFont(self.countdown_edit_font)
+        self.countdown_edit_hour.addItems([f'{i}' for i in range(0, 24)])
+
+        self.countdown_edit_minute = QComboBox()
+        self.countdown_edit_minute.setMinimumHeight(35)
+        self.countdown_edit_minute.setFont(self.countdown_edit_font)
+        self.countdown_edit_minute.addItems([f'{i}' for i in range(0, 60)])
+
+        self.countdown_edit_second = QComboBox()
+        self.countdown_edit_second.setMinimumHeight(35)
+        self.countdown_edit_second.setFont(self.countdown_edit_font)
+        self.countdown_edit_second.addItems([f'{i}' for i in range(0, 60)])
+
+        countdown_edit_hlayout.addWidget(self.countdown_edit_hour)
+
+        countdown_edit_hlayout.addWidget(self.countdown_edit_minute)
+
+        countdown_edit_hlayout.addWidget(self.countdown_edit_second)
+
+        mainLayout.addLayout(countdown_edit_hlayout)
 
         self.buttonCountDown = QPushButton(self.tr("countdown"))
-        mainLayout.addWidget(self.buttonCountDown)
+        self.buttonCountDown.setMinimumHeight(35)
         self.buttonCountDownPause = QPushButton(self.tr("countdown pause"))
-        mainLayout.addWidget(self.buttonCountDownPause)
+        self.buttonCountDownPause.setMinimumHeight(35)
 
+        mainLayout.addWidget(self.buttonCountDownPause)
+        mainLayout.addWidget(self.buttonCountDown)
 
 class MySystemTrayIcon(QSystemTrayIcon):
     def __init__(self, parent=None):
@@ -112,7 +160,7 @@ class Timer(QMainWindow):
         self.timeout.connect(self.beep)
 
     def initUi(self):
-        self.setFixedSize(300, 350)
+        self.setFixedSize(300, 400)
         self.center()
         self.setWindowTitle('timer')
         self.setWindowIcon(QIcon(':images/myapp.png'))
@@ -202,18 +250,13 @@ class Timer(QMainWindow):
 
     def settimer(self, time_sec):
         self.time = time_sec
-        self.mywidget.timeViewer.display(self.time)
-
         time_data = time.gmtime(self.time)
         hour = time_data.tm_hour
         minute = time_data.tm_min
         second = time_data.tm_sec
-        if self.lang == 'zh_CN':
-            text = f'{hour} 小时 {minute} 分 {second} 秒'
-        else:
-            text = f'{hour} hour {minute} minute {second} second'
 
-        self.mywidget.timeForHuman.setText(text)
+        text_time = f'{hour:0>2}:{minute:0>2}:{second:0>2}'
+        self.mywidget.timeViewer.display(text_time)
 
     @Slot()
     def beep(self):
@@ -222,6 +265,16 @@ class Timer(QMainWindow):
         self.sound_thread = MakeSoundThread(self)
         self.sound_thread.start()
 
+    def reset(self):
+        self.time = 0
+        self.settimer(self.time)
+        self.mywidget.reset_countdown_edit()
+
+        self.timerUp.stop()
+        self.timerDown.stop()
+        if self.sound_thread:
+            self.sound_thread.requestInterruption()
+
     def closeEvent(self, event):
         if self.mysystemTrayIcon.isVisible():
             QMessageBox.information(self, '信息', '程序还在后台运行')
@@ -229,8 +282,8 @@ class Timer(QMainWindow):
             event.ignore()
 
     def about(self):
-        QMessageBox.about(self, "about this software", """
-        a simple timer program
+        QMessageBox.about(self, "about this software", f"""
+        a simple timer program {VERSION}
         start 启动
         pause 暂停
         reset 重设计数为0或者停止报警
@@ -247,15 +300,6 @@ class Timer(QMainWindow):
         size = self.geometry()
         self.move((screen_size.width() - size.width()) / 2, \
                   (screen_size.height() - size.height()) / 2)
-
-    def reset(self):
-        self.time = 0
-        self.settimer(self.time)
-        self.mywidget.timeSpinBox.setValue(0)
-        self.timerUp.stop()
-        self.timerDown.stop()
-        if self.sound_thread:
-            self.sound_thread.requestInterruption()
 
 
 def gfun_beep(a, b):
