@@ -12,11 +12,7 @@ from PySide2.QtCore import QTimer, Slot, Signal, QTranslator, QThread, QLocale
 
 import timer_rc
 
-# 先自动加载最佳语言方案
-default_translator = QTranslator()
-default_translator.load(f':translations/timer_{QLocale.system().name()}')
-
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 
 class MyWidget(QWidget):
@@ -111,11 +107,12 @@ class MyWidget(QWidget):
         mainLayout.addWidget(self.buttonCountDownPause)
         mainLayout.addWidget(self.buttonCountDown)
 
+
 class MySystemTrayIcon(QSystemTrayIcon):
     def __init__(self, parent=None):
         super(MySystemTrayIcon, self).__init__(parent)
         self.parent = parent
-        self.setIcon(QIcon(':images/myapp.png'))
+        self.setIcon(QIcon(':/images/myapp.png'))
         self.activated.connect(self.onTrayIconActivated)
 
     def onTrayIconActivated(self, reason):
@@ -163,20 +160,20 @@ class Timer(QMainWindow):
         self.setFixedSize(300, 400)
         self.center()
         self.setWindowTitle('timer')
-        self.setWindowIcon(QIcon(':images/myapp.png'))
+        self.setWindowIcon(QIcon(':/images/myapp.png'))
 
-        menu_control = self.menuBar().addMenu('Contorl')
+        menu_control = self.menuBar().addMenu(self.tr('Contorl'))
         act_quit = menu_control.addAction(self.tr('quit'))
         act_quit.triggered.connect(self.menu_exit)
 
-        menu_language = self.menuBar().addMenu('Language')
+        menu_language = self.menuBar().addMenu(self.tr('Language'))
         act_chinese = menu_language.addAction('中文')
         act_chinese.triggered.connect(self.change_lang_chinese)
         act_english = menu_language.addAction('english')
         act_english.triggered.connect(self.change_lang_english)
 
-        menu_help = self.menuBar().addMenu('Help')
-        act_about = menu_help.addAction('about...')
+        menu_help = self.menuBar().addMenu(self.tr('Help'))
+        act_about = menu_help.addAction(self.tr('about...'))
         act_about.triggered.connect(self.about)
         act_aboutqt = menu_help.addAction('aboutqt')
         act_aboutqt.triggered.connect(self.aboutqt)
@@ -187,23 +184,23 @@ class Timer(QMainWindow):
 
         self.mysystemTrayIcon = MySystemTrayIcon(self)
         menu1 = QMenu(self)
-        menu_systemTrayIcon_open = menu1.addAction('open')
+        menu_systemTrayIcon_open = menu1.addAction(self.tr('open'))
         menu_systemTrayIcon_open.triggered.connect(self.reopen)
         menu1.addSeparator()
-        menu_systemTrayIcon_exit = menu1.addAction("exit")
+        menu_systemTrayIcon_exit = menu1.addAction(self.tr("exit"))
         menu_systemTrayIcon_exit.triggered.connect(self.menu_exit)
         self.mysystemTrayIcon.setContextMenu(menu1)
         self.mysystemTrayIcon.show()
 
         # 状态栏
-        self.statusBar().showMessage('程序已就绪...')
+        self.statusBar().showMessage(self.tr('program is ready...'))
         self.statusBar().setSizeGripEnabled(False)
 
         self.show()
 
     def menu_exit(self):
         reply = QMessageBox.question(self, '信息',
-                                     "你确定要退出吗？",
+                                     self.tr('are you sure to quit?'),
                                      QMessageBox.Yes,
                                      QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -235,7 +232,7 @@ class Timer(QMainWindow):
     def change_lang_chinese(self):
         self.app.removeTranslator(default_translator)
         translator = QTranslator()
-        translator.load(':translations/timer_zh_CN')
+        translator.load(':/translations/timer_zh_CN')
         self.app.installTranslator(translator)
         self.retranslateUi()
         self.lang = 'zh_CN'
@@ -277,12 +274,13 @@ class Timer(QMainWindow):
 
     def closeEvent(self, event):
         if self.mysystemTrayIcon.isVisible():
-            QMessageBox.information(self, '信息', '程序还在后台运行')
+            QMessageBox.information(self, '信息', self.tr(
+                'program is still running background.'))
             self.hide()
             event.ignore()
 
     def about(self):
-        QMessageBox.about(self, "about this software", f"""
+        QMessageBox.about(self, self.tr("about this software"), f"""
         a simple timer program {VERSION}
         start 启动
         pause 暂停
@@ -331,6 +329,9 @@ def gfun_beep(a, b):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    # 先自动加载最佳语言方案
+    default_translator = QTranslator()
+    default_translator.load(f':/translations/timer_{QLocale.system().name()}')
     app.installTranslator(default_translator)
 
     timer = Timer(app)

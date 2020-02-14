@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>28</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -74,7 +74,7 @@
   <action name="action_New">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/new.png</normaloff>:/icons/new.png</iconset>
+     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
    </property>
    <property name="text">
     <string>&amp;New</string>
@@ -86,7 +86,7 @@
   <action name="action_Open">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Open</string>
@@ -98,7 +98,7 @@
   <action name="action_Save">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -120,7 +120,7 @@
   <action name="action_Cut">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/cut.png</normaloff>:/icons/cut.png</iconset>
+     <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
    </property>
    <property name="text">
     <string>Cut</string>
@@ -129,7 +129,7 @@
   <action name="action_Copy">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
+     <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
    </property>
    <property name="text">
     <string>Copy</string>
@@ -138,7 +138,7 @@
   <action name="action_Paste">
    <property name="icon">
     <iconset resource="editor.qrc">
-     <normaloff>:/icons/paste.png</normaloff>:/icons/paste.png</iconset>
+     <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
    </property>
    <property name="text">
     <string>Paste</string>
