@@ -3,16 +3,95 @@
 import os
 import time
 import sys
+from hashlib import md5
+from uuid import uuid1
+import json
 
 from PySide2.QtGui import QIcon, QFont
 from PySide2.QtWidgets import QVBoxLayout, QPushButton, QWidget, \
     QLCDNumber, QMainWindow, QApplication, QMessageBox, \
-    QSystemTrayIcon, QMenu, QHBoxLayout, QComboBox
-from PySide2.QtCore import QTimer, Slot, Signal, QTranslator, QThread, QLocale
+    QSystemTrayIcon, QMenu, QHBoxLayout, QComboBox, QDialog, QTextEdit, \
+    QSpacerItem, QSizePolicy, QTableWidget, QTableWidgetItem
+from PySide2.QtCore import QTimer, Slot, Signal, QTranslator, QThread, \
+    QLocale
 
 import timer_rc
 
-VERSION = '1.1.1'
+VERSION = '1.2.0'
+
+LOG_INTERVAL = 10  # s
+RECORD_SAVE_NUM = 1000  # 保存的运行记录
+AUTOSAVE_INTERVAL = 60  # s
+
+
+def str_md5(key):
+    return md5(key.encode()).hexdigest()
+
+
+def write_json(file, data):
+    with open(file, 'w', encoding='utf8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+def get_json_file(json_filename):
+    """
+    :return:
+    """
+    if not os.path.exists(json_filename):
+        data = {}
+        write_json(json_filename, data)
+
+    return json_filename
+
+
+def get_json_data(json_filename):
+    """
+    获取json文件存储的值
+    :return:
+    """
+    with open(get_json_file(json_filename), encoding='utf8') as f:
+        res = json.load(f)
+        return res
+
+
+def get_json_value(json_filename, k):
+    res = get_json_data(json_filename)
+    return res.get(k)
+
+
+def set_json_value(json_filename, k, v):
+    """
+    对json文件的某个k设置某个值v
+    """
+    res = get_json_data(json_filename)
+    res[k] = v
+    write_json(get_json_file(json_filename), res)
+
+
+def normal_format_now():
+    """
+    标准格式 now
+
+    '2018-12-21 15:39:20'
+    :return:
+    """
+    from datetime import datetime
+    return datetime.now().__format__('%Y-%m-%d %H:%M:%S')
+
+
+def random_md5(limit=None):
+    """
+    输出基于uuid1产生的md5标识
+    limit 截取最前面的几个
+    """
+    key = str(uuid1())
+    text = str_md5(key)
+    if limit:
+        assert isinstance(limit, int)
+        assert limit > 0
+        return text[:limit]
+    else:
+        return text
 
 
 class MyWidget(QWidget):
@@ -24,10 +103,10 @@ class MyWidget(QWidget):
 
         self.initUI()
 
-        self.buttonStart.clicked.connect(self.parent.timerUp.start)
+        self.buttonStart.clicked.connect(self.parent.start_count)
         self.buttonPause.clicked.connect(self.parent.timerUp.stop)
         self.buttonReset.clicked.connect(self.parent.reset)
-        self.buttonCountDown.clicked.connect(self.parent.timerDown.start)
+        self.buttonCountDown.clicked.connect(self.parent.start_countdown)
         self.buttonCountDownPause.clicked.connect(self.parent.timerDown.stop)
 
         self.countdown_edit_hour.currentIndexChanged.connect(
@@ -108,27 +187,82 @@ class MyWidget(QWidget):
         mainLayout.addWidget(self.buttonCountDown)
 
 
-class MySystemTrayIcon(QSystemTrayIcon):
-    def __init__(self, parent=None):
-        super(MySystemTrayIcon, self).__init__(parent)
-        self.parent = parent
-        self.setIcon(QIcon(':/images/myapp.png'))
-        self.activated.connect(self.onTrayIconActivated)
+class RecordTable(QDialog):
+    def __init__(self, running_record, parent=None):
+        super().__init__()
+        self.setupUi(running_record)
 
-    def onTrayIconActivated(self, reason):
-        if reason == QSystemTrayIcon.ActivationReason.Trigger:
-            self.parent.reopen()
+    def setupUi(self, running_record):
+        self.resize(670, 670)
+        mainLayout = QVBoxLayout()
+        self.setLayout(mainLayout)
+
+        self.table = QTableWidget(self)
+        mainLayout.addWidget(self.table)
+
+        row_count = len(running_record)
+        if row_count < 3:
+            row_count = 3
+        self.table.setRowCount(row_count)
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(
+            ['task_name', 'start_time', 'last_time', 'end_time', 'status'])
+
+        head_font = QFont('微软雅黑', 11)
+        head_font.setBold(True)
+        self.table.horizontalHeader().setFont(head_font)
+        self.table.setColumnWidth(0, 120)
+        self.table.setColumnWidth(1, 160)
+        self.table.setColumnWidth(2, 90)
+        self.table.setColumnWidth(3, 160)
+        self.table.setColumnWidth(4, 90)
+
+        for index, item in enumerate(running_record[::-1]):
+            task_name = item.get('task_name', '')
+            last_time = item.get('current_time', '')
+            status = item.get('status', '')
+            start_time = item.get('start_time', '')
+            end_time = item.get('end_time', '')
+
+            self.table.setItem(index, 0, QTableWidgetItem(task_name))
+            self.table.setItem(index, 1, QTableWidgetItem(start_time))
+            self.table.setItem(index, 2, QTableWidgetItem(last_time))
+            self.table.setItem(index, 3, QTableWidgetItem(end_time))
+            self.table.setItem(index, 4, QTableWidgetItem(status))
 
 
-class MakeSoundThread(QThread):
-    def run(self):
-        while True:
-            gfun_beep(500, 3)
+class Loginfo(QDialog):
+    def __init__(self, running_info, parent=None):
+        super().__init__()
 
-            self.sleep(10)
+        self.setupUi()
 
-            if self.isInterruptionRequested():
-                return
+        for log in running_info:
+            self.textEdit.append(log)
+
+    def setupUi(self):
+        self.resize(500, 500)
+        self.verticalLayout = QVBoxLayout()
+        self.textEdit = QTextEdit(self)
+        self.verticalLayout.addWidget(self.textEdit)
+
+        self.setLayout(self.verticalLayout)
+
+        self.horizontalLayout_2 = QHBoxLayout()
+
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding,
+                                 QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem)
+        self.pushButton = QPushButton(self)
+        self.horizontalLayout_2.addWidget(self.pushButton)
+
+        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding,
+                                  QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem1)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+
+        self.pushButton.setText(self.tr("Ok"))
+        self.pushButton.clicked.connect(self.close)
 
 
 class Timer(QMainWindow):
@@ -140,9 +274,13 @@ class Timer(QMainWindow):
         self.lang = QLocale.system().name()
 
         self.sound_thread = None
+        self.running_log = []
+        self.running_task_info = []  # 更完备的任务信息数据
+        self.current_count_task_name = ''
+        self.current_countdown_task_name = ''
 
         self.time = 0
-        self.timeInterval = 1000  # 默认秒
+        self.timeInterval = 1000  # = 1s
 
         self.timerUp = QTimer()
         self.timerUp.setInterval(self.timeInterval)
@@ -152,9 +290,157 @@ class Timer(QMainWindow):
         self.timerDown.setInterval(self.timeInterval)
         self.timerDown.timeout.connect(self.updateDowntime)
 
+        self.timerAutoSave = QTimer()
+        self.timerAutoSave.setInterval(AUTOSAVE_INTERVAL * 1000)
+        self.timerAutoSave.timeout.connect(self.auto_save_running_log)
+        self.timerAutoSave.start()
+
         self.initUi()
 
         self.timeout.connect(self.beep)
+
+    def add_log(self, info):
+        self.running_log.append(f'{normal_format_now()}: {info}')
+
+    @Slot()
+    def auto_save_running_log(self):
+        """
+        自动保存运行日志
+        :return:
+        """
+        running_record = get_json_value('timer.json', 'running_record')
+        if not running_record:
+            running_record = []
+
+        all_record = running_record.copy()
+
+        for item_index, item in enumerate(self.running_task_info):
+            self.upsert_task_info(item, target=all_record)
+
+        if len(all_record) > RECORD_SAVE_NUM:
+            all_record = all_record[-RECORD_SAVE_NUM:]
+
+        set_json_value('timer.json', 'running_record', all_record)
+
+    def upsert_task_info(self, task_info, target=None):
+        if target is None:
+            target = self.running_task_info
+        task_name = task_info['task_name']
+        for index, task_info_item in enumerate(target):
+            if task_name == task_info_item['task_name']:
+                target[index] = {**task_info_item, **task_info}
+                break
+        else:
+            target.append(task_info)
+
+    @Slot()
+    def start_count(self):
+        if not self.current_count_task_name:
+            self.current_count_task_name = f'count_{random_md5(6)}'
+            self.add_log(f'start task {self.current_count_task_name}')
+
+            self.upsert_task_info({
+                'task_name': self.current_count_task_name,
+                'start_time': normal_format_now()
+            })
+
+        self.timerUp.start()
+
+    @Slot()
+    def start_countdown(self):
+        if not self.current_countdown_task_name:
+            self.current_countdown_task_name = f'countdown_{random_md5(6)}'
+
+            self.add_log(f'start task {self.current_countdown_task_name}')
+
+            self.upsert_task_info({
+                'task_name': self.current_countdown_task_name,
+                'start_time': normal_format_now()
+            })
+        self.timerDown.start()
+
+    def updateUptime(self):
+        self.time += 1
+        self.settimer(self.time)
+
+        if self.time % LOG_INTERVAL == 0:
+            self.add_log(
+                f'{self.current_count_task_name} running... all seem good. '
+                f'current time is: {self.format_time_sec(self.time)}'
+            )
+
+            self.upsert_task_info({
+                'task_name': self.current_count_task_name,
+                'current_time': self.format_time_sec(self.time)
+            })
+
+    def updateDowntime(self):
+        self.time = self.time - 1
+        self.settimer(self.time)
+
+        if self.time % LOG_INTERVAL == 0:
+            self.add_log(
+                f'{self.current_countdown_task_name} running... all seem good. '
+                f'current time is: {self.format_time_sec(self.time)}'
+            )
+
+            self.upsert_task_info({
+                'task_name': self.current_countdown_task_name,
+                'current_time': self.format_time_sec(self.time)
+            })
+
+        if self.time <= 0:
+            self.add_log(f'{self.current_countdown_task_name} completed.')
+
+            self.upsert_task_info({
+                'task_name': self.current_countdown_task_name,
+                'status': 'completed',
+                'end_time': normal_format_now()
+            })
+
+            self.timeout.emit()
+
+    def format_time_sec(self, time_sec):
+        """
+        input time in second output time like that format 00:00:00
+
+        :param time_sec:
+        :return:
+        """
+        time_data = time.gmtime(time_sec)
+        hour = time_data.tm_hour
+        minute = time_data.tm_min
+        second = time_data.tm_sec
+
+        text_time = f'{hour:0>2}:{minute:0>2}:{second:0>2}'
+        return text_time
+
+    def settimer(self, time_sec):
+        self.time = time_sec
+        text_time = self.format_time_sec(self.time)
+        self.mywidget.timeViewer.display(text_time)
+
+    def reset(self):
+        self.time = 0
+        self.settimer(self.time)
+        self.mywidget.reset_countdown_edit()
+
+        self.timerUp.stop()
+        self.timerDown.stop()
+        if self.sound_thread:
+            self.sound_thread.requestInterruption()
+
+        self.current_count_task_name = ''
+        self.current_countdown_task_name = ''
+
+    def show_running_log(self):
+        loginfo = Loginfo(self.running_log)
+        loginfo.exec()
+
+    def show_running_record(self):
+        running_record = get_json_value('timer.json', 'running_record')
+        recordTable = RecordTable(running_record)
+        recordTable.exec()
 
     def initUi(self):
         self.setFixedSize(300, 400)
@@ -173,7 +459,14 @@ class Timer(QMainWindow):
         act_english.triggered.connect(self.change_lang_english)
 
         menu_help = self.menuBar().addMenu(self.tr('Help'))
-        act_about = menu_help.addAction(self.tr('about...'))
+        act_show_running_log = menu_help.addAction(self.tr('running log'))
+        act_show_running_record = menu_help.addAction(
+            self.tr("running record"))
+        act_show_running_log.triggered.connect(self.show_running_log)
+        act_show_running_record.triggered.connect(self.show_running_record)
+
+        menu_help.addSeparator()
+        act_about = menu_help.addAction(self.tr('about this program'))
         act_about.triggered.connect(self.about)
         act_aboutqt = menu_help.addAction('aboutqt')
         act_aboutqt.triggered.connect(self.aboutqt)
@@ -204,6 +497,7 @@ class Timer(QMainWindow):
                                      QMessageBox.Yes,
                                      QMessageBox.No)
         if reply == QMessageBox.Yes:
+            self.add_log('program quit normally...')
             self.app.exit()
         else:
             # 如果主窗口不显示qt事件循环会终止
@@ -211,16 +505,6 @@ class Timer(QMainWindow):
 
     def reopen(self):
         self.show()
-
-    def updateUptime(self):
-        self.time += 1
-        self.settimer(self.time)
-
-    def updateDowntime(self):
-        self.time = self.time - 1
-        self.settimer(self.time)
-        if self.time <= 0:
-            self.timeout.emit()
 
     def retranslateUi(self):
         self.mywidget.buttonStart.setText(self.tr("start"))
@@ -245,32 +529,12 @@ class Timer(QMainWindow):
         self.retranslateUi()
         self.lang = 'en'
 
-    def settimer(self, time_sec):
-        self.time = time_sec
-        time_data = time.gmtime(self.time)
-        hour = time_data.tm_hour
-        minute = time_data.tm_min
-        second = time_data.tm_sec
-
-        text_time = f'{hour:0>2}:{minute:0>2}:{second:0>2}'
-        self.mywidget.timeViewer.display(text_time)
-
     @Slot()
     def beep(self):
         self.timerDown.stop()
         # make a sound
         self.sound_thread = MakeSoundThread(self)
         self.sound_thread.start()
-
-    def reset(self):
-        self.time = 0
-        self.settimer(self.time)
-        self.mywidget.reset_countdown_edit()
-
-        self.timerUp.stop()
-        self.timerDown.stop()
-        if self.sound_thread:
-            self.sound_thread.requestInterruption()
 
     def closeEvent(self, event):
         if self.mysystemTrayIcon.isVisible():
@@ -298,6 +562,29 @@ class Timer(QMainWindow):
         size = self.geometry()
         self.move((screen_size.width() - size.width()) / 2, \
                   (screen_size.height() - size.height()) / 2)
+
+
+class MySystemTrayIcon(QSystemTrayIcon):
+    def __init__(self, parent=None):
+        super(MySystemTrayIcon, self).__init__(parent)
+        self.parent = parent
+        self.setIcon(QIcon(':/images/myapp.png'))
+        self.activated.connect(self.onTrayIconActivated)
+
+    def onTrayIconActivated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.parent.reopen()
+
+
+class MakeSoundThread(QThread):
+    def run(self):
+        while True:
+            gfun_beep(500, 3)
+
+            self.sleep(10)
+
+            if self.isInterruptionRequested():
+                return
 
 
 def gfun_beep(a, b):
