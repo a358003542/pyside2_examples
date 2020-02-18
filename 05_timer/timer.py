@@ -19,7 +19,7 @@ from my_python_module.pyside2_helper import Loginfo, SystemTrayIcon
 
 import timer_rc
 
-VERSION = '1.2.0'
+VERSION = '1.2.2'
 
 LOG_INTERVAL = 10  # s
 RECORD_SAVE_NUM = 1000  # 保存的运行记录

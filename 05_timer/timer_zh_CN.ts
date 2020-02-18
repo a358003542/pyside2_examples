@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="zh_CN">
+<!DOCTYPE TS>
+<TS version="2.1" language="zh_CN">
 <context>
     <name>Loginfo</name>
     <message>
-        <location filename="timer.py" line="264"/>
+        <location filename="my_python_module/pyside2_helper.py" line="57"/>
         <source>Ok</source>
-        <translation type="obsolete">好的</translation>
+        <translation>好的</translation>
     </message>
 </context>
 <context>
