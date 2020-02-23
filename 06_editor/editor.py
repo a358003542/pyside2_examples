@@ -11,7 +11,7 @@ from PySide2.QtWidgets import QMainWindow, QApplication, QMessageBox, \
 
 from my_python_module.pyside2_helper import SystemTrayIcon
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 ORGANIZATION_NAME = 'cdwanze'
 APPLICATION_NAME = 'editor'
 
@@ -252,7 +252,7 @@ class Editor(QMainWindow):
         self.action_new = QAction(self)
         self.action_new.setText(self.tr("New"))
         self.action_new.setShortcut(QKeySequence.New)
-        self.action_new.setIcon(QIcon(":/images/new.png"))
+        self.action_new.setIcon(QIcon(":/images/document-new.ico"))
         self.action_new.setToolTip(self.tr("Create a new file"))
         self.action_new.setStatusTip(self.tr("Create a new file"))
 
@@ -260,11 +260,11 @@ class Editor(QMainWindow):
         self.action_open.setText(self.tr("Open"))
         self.action_open.setShortcut(QKeySequence.Open)
         self.action_open.setToolTip(self.tr("Open an existing file"))
-        self.action_open.setIcon(QIcon(":/images/open.png"))
+        self.action_open.setIcon(QIcon(":/images/document-open.ico"))
         self.action_open.setStatusTip(self.tr("Open an existing file"))
 
         self.action_save = QAction(self)
-        self.action_save.setIcon(QIcon(":/images/save.png"))
+        self.action_save.setIcon(QIcon(":/images/document-save.ico"))
         self.action_save.setText(self.tr("Save"))
         self.action_save.setShortcut(QKeySequence.Save)
         self.action_save.setToolTip(self.tr("Save the document to disk"))
@@ -272,6 +272,7 @@ class Editor(QMainWindow):
 
         self.action_saveas = QAction(self)
         self.action_saveas.setText(self.tr("Save As..."))
+        self.action_saveas.setIcon(QIcon(":/images/document-save-as.ico"))
         self.action_saveas.setShortcut(QKeySequence.SaveAs)
 
         self.action_quit = QAction(self)
@@ -280,17 +281,17 @@ class Editor(QMainWindow):
 
         self.action_cut = QAction(self)
         self.action_cut.setText(self.tr("Cut"))
-        self.action_cut.setIcon(QIcon(":/images/cut.png"))
+        self.action_cut.setIcon(QIcon(":/images/edit-cut.ico"))
         self.action_cut.setShortcut(QKeySequence.Cut)
 
         self.action_copy = QAction(self)
         self.action_copy.setText(self.tr("Copy"))
-        self.action_copy.setIcon(QIcon(":/images/copy.png"))
+        self.action_copy.setIcon(QIcon(":/images/edit-copy.ico"))
         self.action_copy.setShortcut(QKeySequence.Copy)
 
         self.action_paste = QAction(self)
         self.action_paste.setText(self.tr("Paste"))
-        self.action_paste.setIcon(QIcon(":/images/paste.png"))
+        self.action_paste.setIcon(QIcon(":/images/edit-paste.ico"))
         self.action_paste.setShortcut(QKeySequence.Paste)
 
         self.action_about = QAction(self)
@@ -303,7 +304,7 @@ class Editor(QMainWindow):
         self.resize(1024, 768)
         self.center()
         self.setWindowTitle(self.tr('simple text editor'))
-        self.setWindowIcon(QIcon(':/images/editor.ico'))
+        self.setWindowIcon(QIcon(':/images/text-editor.ico'))
 
         self.set_action_object()
 
@@ -357,7 +358,7 @@ class Editor(QMainWindow):
         设置系统托盘
         :return:
         """
-        self.mysystemTrayIcon = SystemTrayIcon(self, icon=':/images/editor.ico')
+        self.mysystemTrayIcon = SystemTrayIcon(self, icon=':/images/text-editor.ico')
         menu1 = QMenu(self)
         menu_systemTrayIcon_open = menu1.addAction(self.tr('open'))
         menu_systemTrayIcon_open.triggered.connect(self.show)

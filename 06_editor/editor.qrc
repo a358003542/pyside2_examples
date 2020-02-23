@@ -1,12 +1,16 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file>images/editor.ico</file>
-    <file>images/copy.png</file>
-    <file>images/cut.png</file>
-    <file>images/new.png</file>
-    <file>images/open.png</file>
-    <file>images/paste.png</file>
-    <file>images/save.png</file>
+    <file>images/text-editor.ico</file>
+    <file>images/edit-copy.ico</file>
+    <file>images/edit-cut.ico</file>
+    <file>images/edit-paste.ico</file>
+    <file>images/edit-redo.ico</file>
+    <file>images/edit-undo.ico</file>
+
+    <file>images/document-new.ico</file>
+    <file>images/document-open.ico</file>
+    <file>images/document-save.ico</file>
+    <file>images/document-save-as.ico</file>
 
     <file>translations/editor_zh_CN.qm</file>
 </qresource>

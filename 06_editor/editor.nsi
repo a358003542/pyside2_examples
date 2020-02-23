@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "editor"
-!define PRODUCT_VERSION "1.0.0"
+!define PRODUCT_VERSION "1.0.1"
 !define PRODUCT_PUBLISHER "cdwanze"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\editor.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -13,13 +13,13 @@
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "dist\editor\editor.ico"
+!define MUI_ICON "dist\editor\text-editor.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-!insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "LICENSE"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -92,7 +92,7 @@ Section "MainSection" SEC01
   File "dist\editor\libGLESv2.dll"
   File "dist\editor\libssl-1_1-x64.dll"
   File "dist\editor\MSVCP140.dll"
-  File "dist\editor\editor.ico"
+  File "dist\editor\text-editor.ico"
   File "dist\editor\opengl32sw.dll"
   File "dist\editor\pyexpat.pyd"
   SetOutPath "$INSTDIR\PySide2\plugins\iconengines"
@@ -149,8 +149,8 @@ Section "MainSection" SEC01
   File "dist\editor\shiboken2.abi3.dll"
   File "dist\editor\editor.exe"
   CreateDirectory "$SMPROGRAMS\editor"
-  CreateShortCut "$SMPROGRAMS\editor\editor.lnk" "$INSTDIR\editor.exe" "" "$INSTDIR\editor.ico"
-  CreateShortCut "$DESKTOP\editor.lnk" "$INSTDIR\editor.exe" "" "$INSTDIR\editor.ico"
+  CreateShortCut "$SMPROGRAMS\editor\editor.lnk" "$INSTDIR\editor.exe" "" "$INSTDIR\text-editor.ico"
+  CreateShortCut "$DESKTOP\editor.lnk" "$INSTDIR\editor.exe" "" "$INSTDIR\text-editor.ico"
   File "dist\editor\editor.exe.manifest"
   File "dist\editor\ucrtbase.dll"
   File "dist\editor\unicodedata.pyd"
@@ -262,7 +262,7 @@ Section Uninstall
   Delete "$INSTDIR\PySide2\plugins\iconengines\qsvgicon.dll"
   Delete "$INSTDIR\pyexpat.pyd"
   Delete "$INSTDIR\opengl32sw.dll"
-  Delete "$INSTDIR\editor.ico"
+  Delete "$INSTDIR\text-editor.ico"
   Delete "$INSTDIR\MSVCP140.dll"
   Delete "$INSTDIR\libssl-1_1-x64.dll"
   Delete "$INSTDIR\libGLESv2.dll"
@@ -317,12 +317,7 @@ Section Uninstall
   RMDir "$SMPROGRAMS\editor"
   RMDir "$INSTDIR\shiboken2"
   RMDir "$INSTDIR\PySide2\translations"
-  RMDir "$INSTDIR\PySide2\plugins\styles"
-  RMDir "$INSTDIR\PySide2\plugins\platformthemes"
-  RMDir "$INSTDIR\PySide2\plugins\platforms"
-  RMDir "$INSTDIR\PySide2\plugins\platforminputcontexts"
-  RMDir "$INSTDIR\PySide2\plugins\imageformats"
-  RMDir "$INSTDIR\PySide2\plugins\iconengines"
+  RMDir "$INSTDIR\PySide2\plugins"
   RMDir "$INSTDIR\PySide2"
   RMDir "$INSTDIR"
 

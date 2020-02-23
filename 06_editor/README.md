@@ -1,7 +1,10 @@
 # editor
 
 ## UPDATE LOG
-### 1.1.0
+### 1.0.1
+change the icon set to free tango free icon.
+
+### 1.0.0
 project init.
 
 
