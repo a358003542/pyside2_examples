@@ -61,8 +61,8 @@ class FormExtractor(QWidget):
 
         webView = self.ui.webView
         webView.setUrl(QUrl('qrc:/form.html'))
-        webView.page().mainFrame().javaScriptWindowObjectCleared.connect(
-                self.populateJavaScriptWindowObject)
+        #webView.page().javaScriptWindowObjectCleared.connect(
+        #        self.populateJavaScriptWindowObject)
 
         self.resize(300, 300)
  
@@ -91,7 +91,7 @@ class FormExtractor(QWidget):
             self.ui.updatesEdit.setText("No")
 
     def populateJavaScriptWindowObject(self):
-        self.ui.webView.page().mainFrame().addToJavaScriptWindowObject(
+        self.ui.webView.page().addToJavaScriptWindowObject(
                 'formExtractor', self)
 
 

@@ -41,7 +41,7 @@ class Ui_Form(object):
         self.previewerBox.setObjectName("previewerBox")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.previewerBox)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.webView = QtWebKitWidgets.QWebView(self.previewerBox)
+        self.webView = QtWebEngineWidgets.QWebEngineView(self.previewerBox)
         self.webView.setUrl(QtCore.QUrl("about:blank"))
         self.webView.setObjectName("webView")
         self.horizontalLayout_3.addWidget(self.webView)
@@ -59,4 +59,4 @@ class Ui_Form(object):
         self.previewButton.setText(_translate("Form", "Preview"))
         self.previewerBox.setTitle(_translate("Form", "HTML Preview"))
 
-from PySide2 import QtWebKitWidgets
+from PySide2 import QtWebEngineWidgets

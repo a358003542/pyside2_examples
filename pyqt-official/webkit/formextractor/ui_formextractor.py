@@ -21,7 +21,7 @@ class Ui_Form(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.webView = QtWebKitWidgets.QWebView(self.webFormGroupBox)
+        self.webView = QtWebEngineWidgets.QWebEngineView(self.webFormGroupBox)
         self.webView.setMinimumSize(QtCore.QSize(200, 150))
         self.webView.setMaximumSize(QtCore.QSize(400, 16777215))
         self.webView.setUrl(QtCore.QUrl("about:blank"))
@@ -84,4 +84,4 @@ class Ui_Form(object):
         self.genderLabel.setText(_translate("Form", "Gender"))
         self.updatesLabel.setText(_translate("Form", "Receive Updates"))
 
-from PySide2 import QtWebKitWidgets
+from PySide2 import QtWebEngineWidgets

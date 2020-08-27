@@ -2,8 +2,8 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "editor"
-!define PRODUCT_VERSION "1.0.1"
-!define PRODUCT_PUBLISHER "cdwanze"
+!define PRODUCT_VERSION "1.0.2"
+!define PRODUCT_PUBLISHER "wanze"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\editor.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
@@ -14,7 +14,7 @@
 ; MUI Settings
 !define MUI_ABORTWARNING
 !define MUI_ICON "dist\editor\text-editor.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_UNICON "dist\editor\text-editor.ico"
 
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
@@ -32,7 +32,7 @@
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
-!insertmacro MUI_LANGUAGE "SimpChinese"
+!insertmacro MUI_LANGUAGE "English"
 
 ; MUI end ------
 

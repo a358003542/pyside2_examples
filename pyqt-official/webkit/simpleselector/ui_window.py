@@ -15,7 +15,7 @@ class Ui_Window(object):
         Window.resize(640, 480)
         self.verticalLayout = QtWidgets.QVBoxLayout(Window)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.webView = QtWebKitWidgets.QWebView(Window)
+        self.webView = QtWebEngineWidgets.QWebEngineView(Window)
         self.webView.setUrl(QtCore.QUrl("http://webkit.org/"))
         self.webView.setObjectName("webView")
         self.verticalLayout.addWidget(self.webView)
@@ -47,4 +47,4 @@ class Ui_Window(object):
         self.elementLineEdit.setText(_translate("Window", "li a"))
         self.highlightButton.setText(_translate("Window", "&Highlight"))
 
-from PySide2 import QtWebKitWidgets
+from PySide2 import QtWebEngineWidgets

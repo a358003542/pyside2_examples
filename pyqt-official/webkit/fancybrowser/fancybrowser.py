@@ -46,7 +46,7 @@ from PySide2.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PySide2.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
         QSizePolicy, QStyle, QTextEdit)
 from PySide2.QtNetwork import QNetworkProxyFactory, QNetworkRequest
-from PySide2.QtWebKitWidgets import QWebPage, QWebView
+from PySide2.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
 
 import jquery_rc
 
@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
-        self.view = QWebView(self)
+        self.view = QWebEngineView(self)
         self.view.load(url)
         self.view.loadFinished.connect(self.adjustLocation)
         self.view.titleChanged.connect(self.adjustTitle)
@@ -80,10 +80,10 @@ class MainWindow(QMainWindow):
         self.locationEdit.returnPressed.connect(self.changeLocation)
 
         toolBar = self.addToolBar("Navigation")
-        toolBar.addAction(self.view.pageAction(QWebPage.Back))
-        toolBar.addAction(self.view.pageAction(QWebPage.Forward))
-        toolBar.addAction(self.view.pageAction(QWebPage.Reload))
-        toolBar.addAction(self.view.pageAction(QWebPage.Stop))
+        toolBar.addAction(self.view.pageAction(QWebEnginePage.Back))
+        toolBar.addAction(self.view.pageAction(QWebEnginePage.Forward))
+        toolBar.addAction(self.view.pageAction(QWebEnginePage.Reload))
+        toolBar.addAction(self.view.pageAction(QWebEnginePage.Stop))
         toolBar.addWidget(self.locationEdit)
 
         viewMenu = self.menuBar().addMenu("&View")
@@ -96,8 +96,8 @@ class MainWindow(QMainWindow):
 
         self.rotateAction = QAction(
                 self.style().standardIcon(QStyle.SP_FileDialogDetailedView),
-                "Turn images upside down", self, checkable=True,
-                toggled=self.rotateImages)
+                "Turn images upside down", self, checkable=True,)
+                #toggled=self.rotateImages) # todo
         effectMenu.addAction(self.rotateAction)
 
         toolsMenu = self.menuBar().addMenu("&Tools")
@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
     def finishLoading(self):
         self.progress = 100
         self.adjustTitle()
-        self.view.page().mainFrame().evaluateJavaScript(self.jQuery)
+        self.view.page().runJavaScript(self.jQuery)
         self.rotateImages(self.rotateAction.isChecked())
 
     def highlightAllLinks(self):
@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
                         $(this).css('background-color', 'yellow') 
                     } 
                   )"""
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
     def rotateImages(self, invert):
         if invert:
@@ -175,23 +175,23 @@ class MainWindow(QMainWindow):
                     } 
                 )"""
 
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
     def removeGifImages(self):
         code = "$('[src*=gif]').remove()"
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
     def removeInlineFrames(self):
         code = "$('iframe').remove()"
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
     def removeObjectElements(self):
         code = "$('object').remove()"
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
     def removeEmbeddedElements(self):
         code = "$('embed').remove()"
-        self.view.page().mainFrame().evaluateJavaScript(code)
+        self.view.page().runJavaScript(code)
 
 
 if __name__ == '__main__':

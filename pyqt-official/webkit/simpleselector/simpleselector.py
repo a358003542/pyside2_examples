@@ -79,7 +79,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     win = SimpleSelector()
-    win.setUrl(QUrl('http://www.webkit.org'))
+    win.setUrl(QUrl('http://www.baidu.com'))
     win.show()
 
     sys.exit(app.exec_())

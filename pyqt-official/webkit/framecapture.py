@@ -16,7 +16,6 @@ Result:
   trolltech_frame1.png (...) trolltech_frameN.png ('N' number of internal frames)
 """
 
-
 #############################################################################
 ##
 ## Copyright (C) 2013 Riverbank Computing Limited
@@ -60,10 +59,10 @@ Result:
 
 import sys
 
-from PySide2.QtCore import pyqtSignal, QObject, QSize, Qt, QUrl
+from PySide2.QtCore import Signal, QObject, QSize, Qt, QUrl
 from PySide2.QtGui import QImage, QPainter
 from PySide2.QtWidgets import QApplication
-from PySide2.QtWebKitWidgets import QWebPage
+from PySide2.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
 
 
 def cout(s):
@@ -77,29 +76,32 @@ def cerr(s):
 
 
 class FrameCapture(QObject):
-
-    finished = pyqtSignal()
+    finished = Signal()
 
     def __init__(self):
         super(FrameCapture, self).__init__()
 
         self._percent = 0
-        self._page = QWebPage()
-        self._page.mainFrame().setScrollBarPolicy(Qt.Vertical,
-                Qt.ScrollBarAlwaysOff)
-        self._page.mainFrame().setScrollBarPolicy(Qt.Horizontal,
-                Qt.ScrollBarAlwaysOff)
+        self._webview = QWebEngineView()
+
+        self._page = QWebEnginePage()
+        self._webview.setPage(self._page)
+        # self.webview.setScrollBarPolicy(Qt.Vertical,
+        ##         Qt.ScrollBarAlwaysOff)
+        # self.webview.setScrollBarPolicy(Qt.Horizontal,
+        #         Qt.ScrollBarAlwaysOff)
         self._page.loadProgress.connect(self.printProgress)
         self._page.loadFinished.connect(self.saveResult)
- 
+
     def load(self, url, outputFileName):
         cout("Loading %s\n" % url.toString())
         self._percent = 0
         index = outputFileName.rfind('.')
         self._fileName = index == -1 and outputFileName + ".png" or outputFileName
-        self._page.mainFrame().load(url)
-        self._page.setViewportSize(QSize(1024, 768))
- 
+        self._webview.load(url)
+        self._webview.show()
+        self._webview.setMinimumSize(QSize(1024, 768))
+
     def printProgress(self, percent):
         if self._percent >= percent:
             return
@@ -107,46 +109,49 @@ class FrameCapture(QObject):
         while self._percent < percent:
             self._percent += 1
             cout("#")
- 
+
     def saveResult(self, ok):
         cout("\n")
         # Crude error-checking.
         if not ok:
-            cerr("Failed loading %s\n" % self._page.mainFrame().url().toString())
+            cerr("Failed loading %s\n" % self._page.url().toString())
             self.finished.emit()
             return
 
         # Save each frame in different image files.
         self._frameCounter = 0
-        self.saveFrame(self._page.mainFrame())
+        self.saveFrame(self._webview)
         self.finished.emit()
- 
+
     def saveFrame(self, frame):
         fileName = self._fileName
         if self._frameCounter:
             index = fileName.rfind('.')
-            fileName = "%s_frame%s%s" % (fileName[:index], self._frameCounter, fileName[index:])
-        image = QImage(frame.contentsSize(), QImage.Format_ARGB32_Premultiplied)
+            fileName = "%s_frame%s%s" % (
+                fileName[:index], self._frameCounter, fileName[index:])
+        image = QImage(self._webview.frameSize(),
+                       QImage.Format_ARGB32_Premultiplied)
         image.fill(Qt.transparent)
         painter = QPainter(image)
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setRenderHint(QPainter.TextAntialiasing, True)
         painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        frame.documentElement().render(painter)
+        from PySide2.QtCore import QPoint
+        frame.render(painter, QPoint(0, 0))
         painter.end()
         image.save(fileName)
         self._frameCounter += 1
-        for childFrame in frame.childFrames():
-            self.saveFrame(childFrame)
+        # for childFrame in frame.childFrames():
+        #    self.saveFrame(childFrame)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        cerr(__doc__)
-        sys.exit(1)
+    # if len(sys.argv) != 3:
+    #     cerr(__doc__)
+    #     sys.exit(1)
 
-    url = QUrl.fromUserInput(sys.argv[1])
-    fileName = sys.argv[2]
+    url = QUrl("https://www.baidu.com")  # QUrl.fromUserInput(sys.argv[1])
+    fileName = 'baidu.png'  # sys.argv[2]
 
     app = QApplication(sys.argv)
 
